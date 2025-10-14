@@ -19,7 +19,7 @@ const Menu = () => {
     { id: 6, name: "Macchiato", type: "Espresso", price: 160, description: "Espresso with a dollop of steamed milk", origin: "Italian Style", image: "img/Miccatto.png", featured: false, rating: 4.4 },
     { id: 7, name: "Cappuccino", type: "Milk Coffee", price: 220, description: "Perfect balance of espresso, milk, and foam", origin: "Italian Style", image: "img/Cappuccino.jpg", featured: false, rating: 4.6 },
     { id: 8, name: "Latte Art", type: "Milk Coffee", price: 150, description: "Smooth latte with beautiful art presentation", origin: "Specialty", image: "img/jimma blend.jpg", featured: true, rating: 4.8 },
-    { id: 9, name: "Cold Brew", type: "Cold Coffee", price: 180, description: "Smooth cold brew with low acidity", origin: "Specialty", image: "public/img/cold brrew.png", featured: false, rating: 4.3 },
+    { id: 9, name: "Cold Brew", type: "Cold Coffee", price: 180, description: "Smooth cold brew with low acidity", origin: "Specialty", image: "img/cold brrew.png", featured: false, rating: 4.3 },
     { id: 10, name: "Turkish Coffee", type: "Traditional", price: 140, description: "Strong and aromatic traditional preparation", origin: "Middle Eastern", image: "img/turk.png", featured: false, rating: 4.7 },
     { id: 11, name: "Mocha Delight", type: "Flavored", price: 230, description: "Chocolate-infused coffee with whipped cream", origin: "Specialty", image: "img/mocca.png", featured: true, rating: 4.5 },
     { id: 12, name: "Vanilla Latte", type: "Flavored", price: 220, description: "Smooth latte with natural vanilla flavor", origin: "Specialty", image: "img/Screenshot (821).png", featured: false, rating: 4.4 }

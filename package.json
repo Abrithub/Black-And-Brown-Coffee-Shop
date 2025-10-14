@@ -1,8 +1,13 @@
 {
-  "dependencies": {
-    "@react-google-maps/api": "^2.20.7",
-    "lucide-react": "^0.545.0",
-    "react-icons": "^5.5.0",
-    "react-router-dom": "^7.9.4"
+  "name": "root",
+  "private": true,
+  "workspaces": [
+    "BBC"
+  ],
+  "scripts": {
+    "install:all": "npm --prefix BBC install",
+    "dev": "npm --prefix BBC run dev",
+    "build": "npm --prefix BBC run build",
+    "preview": "npm --prefix BBC run preview"
   }
 }
