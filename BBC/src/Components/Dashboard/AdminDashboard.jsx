@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../Context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 // Simple Chart Component
 const SimpleChart = ({ data, title, type = 'line' }) => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from '../Context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import CustomerAuth from './Auth/CustomerAuth';
 import AdminAuth from './Auth/AdminAuth';
 import AdminDashboard from './Dashboard/AdminDashboard';
