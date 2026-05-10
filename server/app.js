@@ -15,7 +15,7 @@ app.use(cors({
         'http://localhost:5173',
         'http://localhost:5174',
         'http://localhost:3000',
-        // Add your Vercel URL here after deploying:
+        'https://black-and-brown-coffee-shop.vercel.app',
         process.env.FRONTEND_URL,
     ].filter(Boolean),
     credentials: true,
