@@ -8,14 +8,14 @@ import Products from "./Components/Products";
 import Promotion from "./Components/Promotion";
 import AboutUs from "./Components/Aboutus";
 import Contact from "./Components/Contact";
-import Carts from "./pages/Carts";
+import CartSidebar from "./Components/CartSidebar";
 import OrderModal from "./Components/OrderModal";
-
 import Footer from "./Components/Footer";
 import { CartProvider } from "./context/CartContext";
 import "./App.css";
 import CartOrder from "./pages/CartOrder";
 import DisplayCartsPage from "./pages/DisplayCartsPage";
+import QRCodePage from "./pages/QRCodePage";
 
 function App() {
   return (
@@ -24,11 +24,10 @@ function App() {
         <Router>
           <div className="relative bg-[#1a0f0a] text-white">
             <Navbar />
-            <Carts />
+            <CartSidebar />
             <OrderModal />
 
             <Routes>
-              {/* 🏠 Home Page (Main Sections) */}
               <Route
                 path="/"
                 element={
@@ -43,7 +42,6 @@ function App() {
                         <Home />
                       </div>
                     </div>
-
                     <Menu />
                     <Products />
                     <Promotion />
@@ -53,12 +51,9 @@ function App() {
                   </>
                 }
               />
-
-              {/* 🛒 Full Cart Page */}
               <Route path="/cart" element={<DisplayCartsPage />} />
-
-              {/* 💳 Order Popup Page */}
               <Route path="/order" element={<CartOrder />} />
+              <Route path="/qr" element={<QRCodePage />} />
             </Routes>
           </div>
         </Router>

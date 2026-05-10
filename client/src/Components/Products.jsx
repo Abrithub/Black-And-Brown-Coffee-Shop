@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useCart } from "../context/CartContext"; // ✅ for cart functionality
 import { useAuth } from "../context/AuthContext";
+import api from "../utils/api";
 
 const Products = () => {
   const { addToCart } = useCart();
@@ -15,7 +16,7 @@ const Products = () => {
   const exchangeRate = 144.5;
 
   // ✅ Updated Product data (your latest)
-  const coffeeProducts = [
+  const coffeeProductsFallback = [
     {
       id: 1,
       name: "Premium Coffee Beans Pack",
@@ -187,6 +188,41 @@ const Products = () => {
       stock: 25
     }
   ];
+
+  // Use database products when available; keep your existing list as fallback.
+  const [coffeeProducts, setCoffeeProducts] = useState(coffeeProductsFallback);
+
+  // Load coffee products from backend database.
+  useEffect(() => {
+    const loadCoffees = async () => {
+      try {
+        const res = await api.get("/api/coffees");
+        const data = res.data?.coffees || (Array.isArray(res.data) ? res.data : []);
+        if (data.length === 0) return; // keep fallback
+        const mapped = data.map((coffee) => ({
+          id: coffee._id,
+          name: coffee.name,
+          category: coffee.category,
+          price: coffee.price,
+          description: coffee.description,
+          origin: coffee.origin,
+          image: coffee.image || "img/pack.jpg",
+          featured: !!coffee.featured,
+          rating: coffee.rating ?? 0,
+          weight: coffee.weight,
+          roastLevel: coffee.roastLevel,
+          flavorProfile: coffee.flavorProfile ?? [],
+          stock: coffee.stock ?? 0,
+        }));
+        setCoffeeProducts(mapped);
+      } catch (err) {
+        console.error("Failed to load coffees:", err);
+        // Keep fallback products if API call fails.
+      }
+    };
+
+    loadCoffees();
+  }, []);
 
   const calculateDollarPrice = (birrPrice) => (birrPrice / exchangeRate).toFixed(2);
 

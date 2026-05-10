@@ -1,509 +1,463 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
+import QRCodeDisplay from '../QRCode';
 
-// Simple Chart Component
-const SimpleChart = ({ data, title, type = 'line' }) => {
-    const maxValue = Math.max(...data.map(d => d.value));
-    const chartHeight = 200;
-
+// ── Chart ──────────────────────────────────────────────────────────────────
+const SimpleChart = ({ data, title, type = 'bar' }) => {
+    if (!data || data.length === 0) return null;
+    const maxValue = Math.max(...data.map(d => d.value), 1);
+    const chartHeight = 160;
     return (
-        <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] p-6 rounded-2xl border border-[#5D4030] hover:border-[#C19976] transition-all duration-300">
-            <h3 className="text-xl font-bold text-[#C19976] mb-4">{title}</h3>
-            <div className="relative" style={{ height: chartHeight }}>
+        <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] p-5 rounded-2xl border border-[#5D4030]">
+            <h3 className="text-lg font-bold text-[#C19976] mb-4">{title}</h3>
+            <div style={{ height: chartHeight }}>
                 {type === 'line' ? (
-                    // Line Chart
-                    <svg width="100%" height={chartHeight} className="overflow-visible">
+                    <svg width="100%" height={chartHeight}>
                         <defs>
-                            <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <linearGradient id={`g-${title}`} x1="0%" y1="0%" x2="0%" y2="100%">
                                 <stop offset="0%" stopColor="#C19976" stopOpacity="0.3" />
                                 <stop offset="100%" stopColor="#C19976" stopOpacity="0" />
                             </linearGradient>
                         </defs>
-
-                        {/* Grid lines */}
-                        {[0, 25, 50, 75, 100].map((percent) => (
-                            <line
-                                key={percent}
-                                x1="0"
-                                y1={`${percent}%`}
-                                x2="100%"
-                                y2={`${percent}%`}
-                                stroke="#5D4030"
-                                strokeWidth="1"
-                                opacity="0.3"
-                            />
+                        {[0, 25, 50, 75, 100].map(p => (
+                            <line key={p} x1="0" y1={`${p}%`} x2="100%" y2={`${p}%`} stroke="#5D4030" strokeWidth="1" opacity="0.4" />
                         ))}
-
-                        {/* Area under curve */}
                         <path
-                            d={`M 0,${chartHeight} ${data.map((d, i) =>
-                                `L ${(i / (data.length - 1)) * 100}%,${chartHeight - (d.value / maxValue) * chartHeight}`
-                            ).join(' ')} L 100%,${chartHeight} Z`}
-                            fill="url(#lineGradient)"
+                            d={`M 0,${chartHeight} ${data.map((d, i) => `L ${(i / (data.length - 1)) * 100}%,${chartHeight - (d.value / maxValue) * chartHeight}`).join(' ')} L 100%,${chartHeight} Z`}
+                            fill={`url(#g-${title})`}
                         />
-
-                        {/* Line */}
                         <polyline
-                            points={data.map((d, i) =>
-                                `${(i / (data.length - 1)) * 100}%,${chartHeight - (d.value / maxValue) * chartHeight}`
-                            ).join(' ')}
-                            fill="none"
-                            stroke="#C19976"
-                            strokeWidth="3"
-                            strokeLinecap="round"
+                            points={data.map((d, i) => `${(i / (data.length - 1)) * 100}%,${chartHeight - (d.value / maxValue) * chartHeight}`).join(' ')}
+                            fill="none" stroke="#C19976" strokeWidth="2.5" strokeLinecap="round"
                         />
-
-                        {/* Data points */}
                         {data.map((d, i) => (
-                            <circle
-                                key={i}
-                                cx={`${(i / (data.length - 1)) * 100}%`}
-                                cy={chartHeight - (d.value / maxValue) * chartHeight}
-                                r="4"
-                                fill="#C19976"
-                                stroke="#1a0f0a"
-                                strokeWidth="2"
-                            />
+                            <circle key={i} cx={`${(i / (data.length - 1)) * 100}%`} cy={chartHeight - (d.value / maxValue) * chartHeight} r="4" fill="#C19976" stroke="#1a0f0a" strokeWidth="2" />
                         ))}
                     </svg>
                 ) : (
-                    // Bar Chart
-                    <div className="flex items-end justify-between h-full space-x-2">
+                    <div className="flex items-end justify-between h-full gap-1">
                         {data.map((d, i) => (
                             <div key={i} className="flex-1 flex flex-col items-center">
-                                <div
-                                    className="w-full bg-gradient-to-t from-[#C19976] to-amber-600 rounded-t-sm transition-all duration-300 hover:from-amber-600 hover:to-[#C19976]"
-                                    style={{ height: `${(d.value / maxValue) * 100}%` }}
-                                />
-                                <span className="text-xs text-gray-400 mt-2">{d.label}</span>
+                                <div className="w-full bg-gradient-to-t from-[#C19976] to-amber-500 rounded-t" style={{ height: `${(d.value / maxValue) * 100}%` }} />
+                                <span className="text-xs text-gray-400 mt-1 truncate w-full text-center">{d.label}</span>
                             </div>
                         ))}
                     </div>
                 )}
-            </div>
-
-            {/* Chart Legend */}
-            <div className="mt-4 flex flex-wrap gap-4 text-sm">
-                {data.map((d, i) => (
-                    <div key={i} className="flex items-center">
-                        <div className="w-3 h-3 bg-[#C19976] rounded-full mr-2"></div>
-                        <span className="text-gray-300">{d.label}: {d.value}</span>
-                    </div>
-                ))}
             </div>
         </div>
     );
 };
 
-const AdminDashboard = () => {
-    const { logout, admin } = useAuth();
-    const [orders, setOrders] = useState([]);
-    const [stats, setStats] = useState({
-        totalSales: 0,
-        totalOrders: 0,
-        todaySales: 0,
-        todayOrders: 0
-    });
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+// ── Product Form ───────────────────────────────────────────────────────────
+const CATEGORIES = ['Coffee Beans', 'Brewing Equipment', 'Accessories', 'Additives', 'Coffee Capsules', 'Subscription', 'Decor', 'Beverage'];
+const ROAST_LEVELS = ['', 'Light', 'Medium', 'Dark'];
+const EMPTY_PRODUCT = { name: '', price: '', category: 'Beverage', description: '', origin: '', image: '', stock: '', rating: '', featured: false, roastLevel: '', weight: '' };
 
-    // Chart data for weekly and monthly reports
-    const [weeklyData] = useState([
-        { label: 'Mon', value: 12 },
-        { label: 'Tue', value: 19 },
-        { label: 'Wed', value: 15 },
-        { label: 'Thu', value: 25 },
-        { label: 'Fri', value: 22 },
-        { label: 'Sat', value: 30 },
-        { label: 'Sun', value: 18 }
-    ]);
+const ProductForm = ({ initial, onSave, onCancel }) => {
+    const [form, setForm] = useState(initial || EMPTY_PRODUCT);
+    const [saving, setSaving] = useState(false);
+    const [err, setErr] = useState('');
 
-    const [monthlyData] = useState([
-        { label: 'Jan', value: 450 },
-        { label: 'Feb', value: 520 },
-        { label: 'Mar', value: 480 },
-        { label: 'Apr', value: 610 },
-        { label: 'May', value: 580 },
-        { label: 'Jun', value: 650 },
-        { label: 'Jul', value: 720 },
-        { label: 'Aug', value: 680 },
-        { label: 'Sep', value: 750 },
-        { label: 'Oct', value: 820 },
-        { label: 'Nov', value: 780 },
-        { label: 'Dec', value: 900 }
-    ]);
+    const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-    const [weeklySalesData] = useState([
-        { label: 'Mon', value: 2400 },
-        { label: 'Tue', value: 3800 },
-        { label: 'Wed', value: 3000 },
-        { label: 'Thu', value: 5000 },
-        { label: 'Fri', value: 4400 },
-        { label: 'Sat', value: 6000 },
-        { label: 'Sun', value: 3600 }
-    ]);
-
-    const [monthlySalesData] = useState([
-        { label: 'Jan', value: 45000 },
-        { label: 'Feb', value: 52000 },
-        { label: 'Mar', value: 48000 },
-        { label: 'Apr', value: 61000 },
-        { label: 'May', value: 58000 },
-        { label: 'Jun', value: 65000 },
-        { label: 'Jul', value: 72000 },
-        { label: 'Aug', value: 68000 },
-        { label: 'Sep', value: 75000 },
-        { label: 'Oct', value: 82000 },
-        { label: 'Nov', value: 78000 },
-        { label: 'Dec', value: 90000 }
-    ]);
-
-    // Fetch orders and stats from API
-    useEffect(() => {
-        const fetchData = async () => {
-            if (!admin) {
-                setError('Admin not authenticated');
-                setLoading(false);
-                return;
-            }
-
-            try {
-                setLoading(true);
-                setError('');
-
-                // Fetch orders and stats in parallel
-                const [ordersRes, statsRes] = await Promise.all([
-                    api.get('/api/orders'),
-                    api.get('/api/orders/stats/summary')
-                ]);
-
-                if (ordersRes.data.success) {
-                    setOrders(ordersRes.data.orders || []);
-                }
-
-                if (statsRes.data.success) {
-                    setStats({
-                        totalSales: statsRes.data.stats.totalSales || 0,
-                        totalOrders: statsRes.data.stats.totalOrders || 0,
-                        todaySales: statsRes.data.stats.todaySales || 0,
-                        todayOrders: statsRes.data.stats.todayOrders || 0
-                    });
-                }
-            } catch (err) {
-                console.error('Error fetching dashboard data:', err);
-                setError(err.response?.data?.message || 'Failed to load dashboard data');
-                // Fallback to empty state
-                setOrders([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-
-        // Refresh data every 30 seconds
-        const interval = setInterval(fetchData, 30000);
-        return () => clearInterval(interval);
-    }, [admin]);
-
-    const updateOrderStatus = async (orderId, newStatus) => {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setErr('');
+        if (!form.name || !form.price) { setErr('Name and price are required'); return; }
+        setSaving(true);
         try {
-            const res = await api.put(`/api/orders/${orderId}/status`, { status: newStatus });
-
-            if (res.data.success) {
-                // Update local state
-                setOrders(orders.map(order =>
-                    order._id === orderId ? { ...order, status: newStatus } : order
-                ));
-
-                // Refresh stats
-                const statsRes = await api.get('/api/orders/stats/summary');
-                if (statsRes.data.success) {
-                    setStats({
-                        totalSales: statsRes.data.stats.totalSales || 0,
-                        totalOrders: statsRes.data.stats.totalOrders || 0,
-                        todaySales: statsRes.data.stats.todaySales || 0,
-                        todayOrders: statsRes.data.stats.todayOrders || 0
-                    });
-                }
-            }
-        } catch (err) {
-            console.error('Error updating order status:', err);
-            setError(err.response?.data?.message || 'Failed to update order status');
-        }
+            await onSave({ ...form, price: Number(form.price), stock: Number(form.stock) || 0, rating: Number(form.rating) || 0 });
+        } catch (e) {
+            setErr(e.response?.data?.message || 'Save failed');
+        } finally { setSaving(false); }
     };
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'completed': return 'bg-green-600';
-            case 'pending': return 'bg-yellow-600';
-            case 'cancelled': return 'bg-red-600';
-            default: return 'bg-gray-600';
-        }
-    };
+    const inp = "w-full p-2.5 bg-[#1a0f0a] border border-[#5D4030] rounded-lg text-white text-sm focus:ring-1 focus:ring-[#C19976] outline-none";
 
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleString();
-    };
-
-    if (!admin) {
-        return (
-            <div className="min-h-screen bg-gradient-to-b from-[#1a0f0a] to-[#2A1A10] p-4 flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-red-400 text-xl">Please log in as admin to access the dashboard</p>
+    return (
+        <form onSubmit={handleSubmit} className="space-y-3">
+            {err && <p className="text-red-400 text-sm bg-red-900/20 p-2 rounded">{err}</p>}
+            <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                    <label className="text-gray-400 text-xs mb-1 block">Product Name *</label>
+                    <input className={inp} value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Ethiopian Yirgacheffe" required />
+                </div>
+                <div>
+                    <label className="text-gray-400 text-xs mb-1 block">Price (birr) *</label>
+                    <input className={inp} type="number" min="0" value={form.price} onChange={e => set('price', e.target.value)} placeholder="450" required />
+                </div>
+                <div>
+                    <label className="text-gray-400 text-xs mb-1 block">Stock</label>
+                    <input className={inp} type="number" min="0" value={form.stock} onChange={e => set('stock', e.target.value)} placeholder="25" />
+                </div>
+                <div>
+                    <label className="text-gray-400 text-xs mb-1 block">Category</label>
+                    <select className={inp} value={form.category} onChange={e => set('category', e.target.value)}>
+                        {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label className="text-gray-400 text-xs mb-1 block">Roast Level</label>
+                    <select className={inp} value={form.roastLevel} onChange={e => set('roastLevel', e.target.value)}>
+                        {ROAST_LEVELS.map(r => <option key={r} value={r}>{r || 'N/A'}</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label className="text-gray-400 text-xs mb-1 block">Origin</label>
+                    <input className={inp} value={form.origin} onChange={e => set('origin', e.target.value)} placeholder="Ethiopia" />
+                </div>
+                <div>
+                    <label className="text-gray-400 text-xs mb-1 block">Weight</label>
+                    <input className={inp} value={form.weight} onChange={e => set('weight', e.target.value)} placeholder="500g" />
+                </div>
+                <div>
+                    <label className="text-gray-400 text-xs mb-1 block">Rating (0–5)</label>
+                    <input className={inp} type="number" min="0" max="5" step="0.1" value={form.rating} onChange={e => set('rating', e.target.value)} placeholder="4.5" />
+                </div>
+                <div className="flex items-center gap-2 pt-4">
+                    <input type="checkbox" id="featured" checked={form.featured} onChange={e => set('featured', e.target.checked)} className="accent-[#C19976]" />
+                    <label htmlFor="featured" className="text-gray-300 text-sm">Featured product</label>
+                </div>
+                <div className="col-span-2">
+                    <label className="text-gray-400 text-xs mb-1 block">Image URL</label>
+                    <input className={inp} value={form.image} onChange={e => set('image', e.target.value)} placeholder="img/pack.jpg or https://..." />
+                </div>
+                <div className="col-span-2">
+                    <label className="text-gray-400 text-xs mb-1 block">Description</label>
+                    <textarea className={inp + ' resize-none'} rows={3} value={form.description} onChange={e => set('description', e.target.value)} placeholder="Product description..." />
                 </div>
             </div>
-        );
-    }
+            <div className="flex gap-3 pt-2">
+                <button type="submit" disabled={saving} className="flex-1 bg-[#C19976] text-black font-bold py-2.5 rounded-lg hover:bg-amber-600 transition disabled:opacity-60">
+                    {saving ? 'Saving...' : (initial?._id ? 'Update Product' : 'Add Product')}
+                </button>
+                <button type="button" onClick={onCancel} className="flex-1 border border-[#5D4030] text-gray-300 py-2.5 rounded-lg hover:border-[#C19976] transition">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    );
+};
+
+// ── Main Dashboard ─────────────────────────────────────────────────────────
+const AdminDashboard = () => {
+    const { logout, admin } = useAuth();
+    const [tab, setTab] = useState('orders');
+    const [showQR, setShowQR] = useState(false);
+    const [orders, setOrders] = useState([]);
+    const [products, setProducts] = useState([]);
+    const [stats, setStats] = useState({ totalSales: 0, totalOrders: 0, todaySales: 0, todayOrders: 0, statusCounts: {} });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [showProductForm, setShowProductForm] = useState(false);
+    const [editingProduct, setEditingProduct] = useState(null);
+    const [orderFilter, setOrderFilter] = useState('all');
+
+    const fetchAll = useCallback(async () => {
+        if (!admin) return;
+        try {
+            setLoading(true);
+            setError('');
+            const [ordersRes, statsRes, productsRes] = await Promise.all([
+                api.get('/api/orders'),
+                api.get('/api/orders/stats/summary'),
+                api.get('/api/coffees'),
+            ]);
+            if (ordersRes.data.success) setOrders(ordersRes.data.orders || []);
+            if (statsRes.data.success) setStats(statsRes.data.stats);
+            const coffees = productsRes.data?.coffees || productsRes.data || [];
+            setProducts(Array.isArray(coffees) ? coffees : []);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to load data');
+        } finally { setLoading(false); }
+    }, [admin]);
+
+    useEffect(() => { fetchAll(); const t = setInterval(fetchAll, 30000); return () => clearInterval(t); }, [fetchAll]);
+
+    const updateOrderStatus = async (orderId, status) => {
+        try {
+            await api.put(`/api/orders/${orderId}/status`, { status });
+            setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status } : o));
+        } catch (err) { setError('Failed to update order status'); }
+    };
+
+    const deleteOrder = async (orderId) => {
+        if (!window.confirm('Delete this order?')) return;
+        try {
+            await api.delete(`/api/orders/${orderId}`);
+            setOrders(prev => prev.filter(o => o._id !== orderId));
+        } catch (err) { setError('Failed to delete order'); }
+    };
+
+    const saveProduct = async (data) => {
+        if (editingProduct?._id) {
+            const res = await api.put(`/api/coffees/${editingProduct._id}`, data);
+            setProducts(prev => prev.map(p => p._id === editingProduct._id ? res.data.coffee : p));
+        } else {
+            const res = await api.post('/api/coffees', data);
+            setProducts(prev => [res.data.coffee, ...prev]);
+        }
+        setShowProductForm(false);
+        setEditingProduct(null);
+    };
+
+    const deleteProduct = async (id) => {
+        if (!window.confirm('Delete this product?')) return;
+        try {
+            await api.delete(`/api/coffees/${id}`);
+            setProducts(prev => prev.filter(p => p._id !== id));
+        } catch (err) { setError('Failed to delete product'); }
+    };
+
+    // Build chart data from real orders
+    const buildWeeklyChart = () => {
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const counts = Array(7).fill(0);
+        const now = new Date();
+        orders.forEach(o => {
+            const d = new Date(o.createdAt);
+            if ((now - d) / 86400000 <= 7) counts[d.getDay()]++;
+        });
+        return days.map((label, i) => ({ label, value: counts[i] }));
+    };
+
+    const buildMonthlyChart = () => {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const totals = Array(12).fill(0);
+        orders.forEach(o => { totals[new Date(o.createdAt).getMonth()] += o.total || 0; });
+        return months.map((label, i) => ({ label, value: totals[i] }));
+    };
+
+    const filteredOrders = orderFilter === 'all' ? orders : orders.filter(o => o.status === orderFilter);
+
+    const statusColor = { completed: 'bg-green-600', pending: 'bg-yellow-600', processing: 'bg-blue-600', cancelled: 'bg-red-600' };
+
+    if (!admin) return (
+        <div className="min-h-screen bg-[#1a0f0a] flex items-center justify-center">
+            <p className="text-red-400 text-xl">Please log in as admin</p>
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#1a0f0a] to-[#2A1A10] p-4">
             <div className="max-w-7xl mx-auto">
+                {showQR && <QRCodeDisplay onClose={() => setShowQR(false)} />}
+
                 {/* Header */}
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex justify-between items-center mb-6">
                     <div>
-                        <h1 className="text-4xl font-bold text-[#C19976] mb-2">Admin Dashboard</h1>
-                        <p className="text-gray-300">Manage your coffee shop operations</p>
-                        {admin.fullName && (
-                            <p className="text-gray-400 text-sm mt-1">Welcome, {admin.fullName}</p>
-                        )}
+                        <h1 className="text-3xl font-bold text-[#C19976]">Admin Dashboard</h1>
+                        <p className="text-gray-400 text-sm">Welcome back, {admin.name || 'Admin'}</p>
                     </div>
-                    <button
-                        onClick={logout}
-                        className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-                    >
+                    <button onClick={logout} className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg font-semibold transition">
                         Logout
+                    </button>
+                    <button onClick={() => setShowQR(true)} className="bg-[#C19976] hover:bg-[#b38966] text-black px-5 py-2 rounded-lg font-semibold transition flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4H4v8h8V4zM20 4h-8v8h8V4zM4 20h8v-8H4v8z"/>
+                        </svg>
+                        QR Code
                     </button>
                 </div>
 
-                {/* Error Message */}
                 {error && (
-                    <div className="mb-6 bg-red-600/20 border border-red-600/50 rounded-lg p-4">
-                        <p className="text-red-400">{error}</p>
+                    <div className="mb-4 bg-red-600/20 border border-red-600/50 rounded-lg p-3">
+                        <p className="text-red-400 text-sm">{error}</p>
                     </div>
                 )}
 
-                {/* Loading State */}
+                {/* Stats */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    {[
+                        { label: 'Total Sales', value: `${stats.totalSales?.toLocaleString()} birr`, icon: '💰' },
+                        { label: 'Total Orders', value: stats.totalOrders, icon: '📦' },
+                        { label: "Today's Sales", value: `${stats.todaySales?.toLocaleString()} birr`, icon: '📈' },
+                        { label: "Today's Orders", value: stats.todayOrders, icon: '🛒' },
+                    ].map(s => (
+                        <div key={s.label} className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] p-5 rounded-2xl border border-[#5D4030] hover:border-[#C19976] transition">
+                            <p className="text-gray-400 text-xs mb-1">{s.label}</p>
+                            <p className="text-2xl font-bold text-[#C19976]">{s.value}</p>
+                            <span className="text-2xl">{s.icon}</span>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Tabs */}
+                <div className="flex gap-2 mb-6 border-b border-[#5D4030]">
+                    {['orders', 'products', 'analytics'].map(t => (
+                        <button key={t} onClick={() => setTab(t)}
+                            className={`px-5 py-2.5 font-semibold capitalize transition rounded-t-lg ${tab === t ? 'bg-[#C19976] text-black' : 'text-gray-400 hover:text-[#C19976]'}`}>
+                            {t}
+                        </button>
+                    ))}
+                </div>
+
                 {loading ? (
-                    <div className="text-center py-12">
-                        <p className="text-[#C19976] text-xl">Loading dashboard data...</p>
-                    </div>
+                    <div className="text-center py-16"><p className="text-[#C19976] text-lg animate-pulse">Loading...</p></div>
                 ) : (
                     <>
-                        {/* Stats Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                            <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] p-6 rounded-2xl border border-[#5D4030] hover:border-[#C19976] transition-all duration-300">
-                                <div className="flex items-center justify-between">
+                        {/* ── ORDERS TAB ── */}
+                        {tab === 'orders' && (
+                            <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] rounded-2xl border border-[#5D4030] overflow-hidden">
+                                <div className="p-5 border-b border-[#5D4030] flex flex-wrap gap-3 items-center justify-between">
                                     <div>
-                                        <p className="text-gray-400 text-sm">Total Sales</p>
-                                        <p className="text-3xl font-bold text-[#C19976]">{stats.totalSales} birr</p>
+                                        <h2 className="text-xl font-bold text-[#C19976]">Orders</h2>
+                                        <p className="text-gray-400 text-sm">{filteredOrders.length} orders</p>
                                     </div>
-                                    <div className="w-12 h-12 bg-[#C19976]/20 rounded-full flex items-center justify-center">
-                                        <svg className="w-6 h-6 text-[#C19976]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] p-6 rounded-2xl border border-[#5D4030] hover:border-[#C19976] transition-all duration-300">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-gray-400 text-sm">Total Orders</p>
-                                        <p className="text-3xl font-bold text-[#C19976]">{stats.totalOrders}</p>
-                                    </div>
-                                    <div className="w-12 h-12 bg-[#C19976]/20 rounded-full flex items-center justify-center">
-                                        <svg className="w-6 h-6 text-[#C19976]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] p-6 rounded-2xl border border-[#5D4030] hover:border-[#C19976] transition-all duration-300">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-gray-400 text-sm">Today's Sales</p>
-                                        <p className="text-3xl font-bold text-[#C19976]">{stats.todaySales} birr</p>
-                                    </div>
-                                    <div className="w-12 h-12 bg-[#C19976]/20 rounded-full flex items-center justify-center">
-                                        <svg className="w-6 h-6 text-[#C19976]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] p-6 rounded-2xl border border-[#5D4030] hover:border-[#C19976] transition-all duration-300">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-gray-400 text-sm">Today's Orders</p>
-                                        <p className="text-3xl font-bold text-[#C19976]">{stats.todayOrders}</p>
-                                    </div>
-                                    <div className="w-12 h-12 bg-[#C19976]/20 rounded-full flex items-center justify-center">
-                                        <svg className="w-6 h-6 text-[#C19976]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Orders Table */}
-                        <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] rounded-2xl border border-[#5D4030] overflow-hidden">
-                            <div className="p-6 border-b border-[#5D4030]">
-                                <h2 className="text-2xl font-bold text-[#C19976]">Recent Orders</h2>
-                                <p className="text-gray-400">Manage and track customer orders</p>
-                            </div>
-
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-[#1a0f0a]">
-                                        <tr>
-                                            <th className="text-left p-4 text-[#C19976] font-semibold">Order ID</th>
-                                            <th className="text-left p-4 text-[#C19976] font-semibold">Customer</th>
-                                            <th className="text-left p-4 text-[#C19976] font-semibold">Items</th>
-                                            <th className="text-left p-4 text-[#C19976] font-semibold">Total</th>
-                                            <th className="text-left p-4 text-[#C19976] font-semibold">Status</th>
-                                            <th className="text-left p-4 text-[#C19976] font-semibold">Date</th>
-                                            <th className="text-left p-4 text-[#C19976] font-semibold">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {orders.length === 0 && !loading && (
-                                            <tr>
-                                                <td colSpan="7" className="p-8 text-center text-gray-400">
-                                                    No orders found
-                                                </td>
-                                            </tr>
-                                        )}
-                                        {orders.map((order) => (
-                                            <tr key={order._id || order.id} className="border-t border-[#5D4030] hover:bg-[#1a0f0a]/50">
-                                                <td className="p-4 text-white font-mono">#{order._id?.slice(-6) || order.id}</td>
-                                                <td className="p-4">
-                                                    <div>
-                                                        <p className="text-white font-semibold">{order.customerName}</p>
-                                                        <p className="text-gray-400 text-sm">{order.email}</p>
-                                                    </div>
-                                                </td>
-                                                <td className="p-4">
-                                                    <div className="space-y-1">
-                                                        {order.items.map((item, index) => (
-                                                            <p key={index} className="text-gray-300 text-sm">
-                                                                {item.quantity}x {item.name}
-                                                            </p>
-                                                        ))}
-                                                    </div>
-                                                </td>
-                                                <td className="p-4 text-[#C19976] font-bold">{order.total} birr</td>
-                                                <td className="p-4">
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold text-white ${getStatusColor(order.status)}`}>
-                                                        {order.status}
-                                                    </span>
-                                                </td>
-                                                <td className="p-4 text-gray-400 text-sm">{formatDate(order.createdAt || order.date)}</td>
-                                                <td className="p-4">
-                                                    <select
-                                                        value={order.status}
-                                                        onChange={(e) => updateOrderStatus(order._id || order.id, e.target.value)}
-                                                        className="bg-[#1a0f0a] border border-[#5D4030] text-white rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-[#C19976] focus:border-[#C19976] outline-none"
-                                                    >
-                                                        <option value="pending">Pending</option>
-                                                        <option value="processing">Processing</option>
-                                                        <option value="completed">Completed</option>
-                                                        <option value="cancelled">Cancelled</option>
-                                                    </select>
-                                                </td>
-                                            </tr>
+                                    <div className="flex gap-2 flex-wrap">
+                                        {['all', 'pending', 'processing', 'completed', 'cancelled'].map(f => (
+                                            <button key={f} onClick={() => setOrderFilter(f)}
+                                                className={`px-3 py-1 rounded-full text-xs font-semibold capitalize transition ${orderFilter === f ? 'bg-[#C19976] text-black' : 'border border-[#5D4030] text-gray-400 hover:border-[#C19976]'}`}>
+                                                {f}
+                                            </button>
                                         ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {/* Charts Section */}
-                        <div className="mb-8">
-                            <h2 className="text-3xl font-bold text-[#C19976] mb-6">Sales Analytics</h2>
-                            <div className="grid lg:grid-cols-2 gap-6 mb-8">
-                                <SimpleChart
-                                    data={weeklyData}
-                                    title="Weekly Orders"
-                                    type="line"
-                                />
-                                <SimpleChart
-                                    data={weeklySalesData}
-                                    title="Weekly Sales (birr)"
-                                    type="bar"
-                                />
-                            </div>
-                            <div className="grid lg:grid-cols-2 gap-6">
-                                <SimpleChart
-                                    data={monthlyData}
-                                    title="Monthly Orders"
-                                    type="line"
-                                />
-                                <SimpleChart
-                                    data={monthlySalesData}
-                                    title="Monthly Sales (birr)"
-                                    type="bar"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Quick Actions */}
-                        <div className="mt-8 grid md:grid-cols-3 gap-6">
-                            <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] p-6 rounded-2xl border border-[#5D4030] hover:border-[#C19976] transition-all duration-300">
-                                <h3 className="text-xl font-bold text-[#C19976] mb-4">Quick Actions</h3>
-                                <div className="space-y-3">
-                                    <button className="w-full bg-[#C19976] hover:bg-amber-600 text-black font-semibold py-2 px-4 rounded-lg transition-colors">
-                                        Add New Product
-                                    </button>
-                                    <button className="w-full bg-[#C19976] hover:bg-amber-600 text-black font-semibold py-2 px-4 rounded-lg transition-colors">
-                                        View Reports
-                                    </button>
-                                    <button className="w-full bg-[#C19976] hover:bg-amber-600 text-black font-semibold py-2 px-4 rounded-lg transition-colors">
-                                        Manage Inventory
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] p-6 rounded-2xl border border-[#5D4030] hover:border-[#C19976] transition-all duration-300">
-                                <h3 className="text-xl font-bold text-[#C19976] mb-4">Popular Items</h3>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-gray-300">Ethiopian Yirgacheffe</span>
-                                        <span className="text-[#C19976] font-semibold">15 sold</span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-gray-300">Cappuccino</span>
-                                        <span className="text-[#C19976] font-semibold">12 sold</span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-gray-300">Sidamo Coffee</span>
-                                        <span className="text-[#C19976] font-semibold">10 sold</span>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] p-6 rounded-2xl border border-[#5D4030] hover:border-[#C19976] transition-all duration-300">
-                                <h3 className="text-xl font-bold text-[#C19976] mb-4">Recent Activity</h3>
-                                <div className="space-y-3">
-                                    <div className="text-sm">
-                                        <p className="text-gray-300">New order from John Doe</p>
-                                        <p className="text-gray-500 text-xs">2 minutes ago</p>
-                                    </div>
-                                    <div className="text-sm">
-                                        <p className="text-gray-300">Order #2 completed</p>
-                                        <p className="text-gray-500 text-xs">1 hour ago</p>
-                                    </div>
-                                    <div className="text-sm">
-                                        <p className="text-gray-300">New customer registered</p>
-                                        <p className="text-gray-500 text-xs">3 hours ago</p>
-                                    </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead className="bg-[#1a0f0a]">
+                                            <tr>
+                                                {['Order ID', 'Customer', 'Items', 'Total', 'Payment', 'Status', 'Date', 'Actions'].map(h => (
+                                                    <th key={h} className="text-left p-4 text-[#C19976] font-semibold whitespace-nowrap">{h}</th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {filteredOrders.length === 0 && (
+                                                <tr><td colSpan="8" className="p-8 text-center text-gray-400">No orders found</td></tr>
+                                            )}
+                                            {filteredOrders.map(order => (
+                                                <tr key={order._id} className="border-t border-[#5D4030] hover:bg-[#1a0f0a]/50">
+                                                    <td className="p-4 font-mono text-gray-300">#{order._id?.slice(-6)}</td>
+                                                    <td className="p-4">
+                                                        <p className="text-white font-medium">{order.customerName}</p>
+                                                        <p className="text-gray-400 text-xs">{order.email}</p>
+                                                        {order.phone && <p className="text-gray-500 text-xs">{order.phone}</p>}
+                                                    </td>
+                                                    <td className="p-4">
+                                                        {order.items.map((item, i) => (
+                                                            <p key={i} className="text-gray-300 text-xs">{item.quantity}× {item.name}</p>
+                                                        ))}
+                                                    </td>
+                                                    <td className="p-4 text-[#C19976] font-bold whitespace-nowrap">{order.total} birr</td>
+                                                    <td className="p-4 text-gray-300">{order.paymentMethod}</td>
+                                                    <td className="p-4">
+                                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold text-white ${statusColor[order.status] || 'bg-gray-600'}`}>
+                                                            {order.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="p-4 text-gray-400 text-xs whitespace-nowrap">
+                                                        {new Date(order.createdAt).toLocaleDateString()}
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <div className="flex gap-2 items-center">
+                                                            <select
+                                                                value={order.status}
+                                                                onChange={e => updateOrderStatus(order._id, e.target.value)}
+                                                                className="bg-[#1a0f0a] border border-[#5D4030] text-white rounded px-2 py-1 text-xs focus:ring-1 focus:ring-[#C19976] outline-none"
+                                                            >
+                                                                <option value="pending">Pending</option>
+                                                                <option value="processing">Processing</option>
+                                                                <option value="completed">Completed</option>
+                                                                <option value="cancelled">Cancelled</option>
+                                                            </select>
+                                                            <button onClick={() => deleteOrder(order._id)} className="text-red-400 hover:text-red-300 text-xs px-2 py-1 border border-red-800 rounded hover:bg-red-900/30 transition">
+                                                                Del
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                        </div>
+                        )}
+
+                        {/* ── PRODUCTS TAB ── */}
+                        {tab === 'products' && (
+                            <div>
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-xl font-bold text-[#C19976]">Products ({products.length})</h2>
+                                    <button
+                                        onClick={() => { setEditingProduct(null); setShowProductForm(true); }}
+                                        className="bg-[#C19976] text-black font-bold px-5 py-2 rounded-lg hover:bg-amber-600 transition"
+                                    >
+                                        + Add Product
+                                    </button>
+                                </div>
+
+                                {showProductForm && (
+                                    <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] rounded-2xl border border-[#C19976]/50 p-6 mb-6">
+                                        <h3 className="text-lg font-bold text-[#C19976] mb-4">
+                                            {editingProduct ? 'Edit Product' : 'Add New Product'}
+                                        </h3>
+                                        <ProductForm
+                                            initial={editingProduct}
+                                            onSave={saveProduct}
+                                            onCancel={() => { setShowProductForm(false); setEditingProduct(null); }}
+                                        />
+                                    </div>
+                                )}
+
+                                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {products.map(p => (
+                                        <div key={p._id} className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] rounded-xl border border-[#5D4030] hover:border-[#C19976] transition overflow-hidden">
+                                            <div className="h-40 overflow-hidden bg-[#1a0f0a]">
+                                                <img src={p.image || 'img/pack.jpg'} alt={p.name} className="w-full h-full object-cover" onError={e => { e.target.src = 'img/pack.jpg'; }} />
+                                            </div>
+                                            <div className="p-4">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <h3 className="text-[#C19976] font-bold text-sm leading-tight">{p.name}</h3>
+                                                    {p.featured && <span className="bg-[#C19976] text-black text-xs px-1.5 py-0.5 rounded-full ml-1 shrink-0">★</span>}
+                                                </div>
+                                                <p className="text-gray-400 text-xs mb-2">{p.category}</p>
+                                                <div className="flex justify-between items-center text-sm mb-3">
+                                                    <span className="text-[#C19976] font-bold">{p.price} birr</span>
+                                                    <span className={`text-xs ${p.stock > 10 ? 'text-green-400' : p.stock > 0 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                                        Stock: {p.stock}
+                                                    </span>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => { setEditingProduct(p); setShowProductForm(true); }}
+                                                        className="flex-1 border border-[#C19976] text-[#C19976] py-1.5 rounded-lg text-xs font-semibold hover:bg-[#C19976] hover:text-black transition"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => deleteProduct(p._id)}
+                                                        className="flex-1 border border-red-600 text-red-400 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-600 hover:text-white transition"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ── ANALYTICS TAB ── */}
+                        {tab === 'analytics' && (
+                            <div className="space-y-6">
+                                <div className="grid sm:grid-cols-3 gap-4">
+                                    {Object.entries(stats.statusCounts || {}).map(([status, count]) => (
+                                        <div key={status} className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] p-5 rounded-2xl border border-[#5D4030]">
+                                            <p className="text-gray-400 text-xs capitalize mb-1">{status} orders</p>
+                                            <p className="text-3xl font-bold text-[#C19976]">{count}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="grid lg:grid-cols-2 gap-6">
+                                    <SimpleChart data={buildWeeklyChart()} title="Orders This Week" type="bar" />
+                                    <SimpleChart data={buildMonthlyChart()} title="Monthly Revenue (birr)" type="line" />
+                                </div>
+                            </div>
+                        )}
                     </>
                 )}
             </div>

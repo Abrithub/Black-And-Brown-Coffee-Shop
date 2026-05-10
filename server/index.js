@@ -1,0 +1,13 @@
+import dotenv from 'dotenv';
+import connectDB from './database/connectdb.js';
+import app from './app.js';
+
+dotenv.config();
+
+// Connect to MongoDB, then start the full API server.
+connectDB();
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

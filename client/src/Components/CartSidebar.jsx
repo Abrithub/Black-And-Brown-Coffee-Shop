@@ -156,7 +156,11 @@ const CartSidebar = () => {
 
               {/* Action Buttons */}
               <div className="space-y-3">
-                <button className="w-full bg-[#C19976] text-black py-3 rounded-lg font-bold hover:bg-[#b38966] transition-colors shadow-lg">
+                <button
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('placeOrder'));
+                  }}
+                  className="w-full bg-[#C19976] text-black py-3 rounded-lg font-bold hover:bg-[#b38966] transition-colors shadow-lg">
                   Proceed to Checkout
                 </button>
                 
