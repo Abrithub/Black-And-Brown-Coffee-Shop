@@ -58,7 +58,7 @@ const orderSchema = new mongoose.Schema(
         },
         paymentMethod: {
             type: String,
-            enum: ['Card', 'Telebirr', 'CBE', 'Cash'],
+            enum: ['Card', 'Telebirr', 'CBE', 'Cash', 'Chapa'],
             required: true
         },
         paymentMeta: {
@@ -85,7 +85,7 @@ orderSchema.pre('validate', function (next) {
             0
         );
     }
-    next();
+    if (typeof next === 'function') next();
 });
 
 export default mongoose.model('Order', orderSchema);

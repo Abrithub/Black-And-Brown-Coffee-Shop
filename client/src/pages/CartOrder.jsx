@@ -12,7 +12,7 @@ const PAYMENT_METHODS = [
 const CartOrder = ({ onClose }) => {
   const { cart, clearCart, getCartTotal } = useCart();
   const { user } = useAuth();
-  const [paymentMethod, setPaymentMethod] = useState("Chapa");
+  const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({

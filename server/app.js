@@ -17,6 +17,7 @@ app.use(cors({
         'http://localhost:5174',
         'http://localhost:3000',
         'https://black-and-brown-coffee-shop.vercel.app',
+        'https://black-and-brown-coffee-shop-6hn7.vercel.app',
         process.env.FRONTEND_URL,
     ].filter(Boolean),
     credentials: true,
