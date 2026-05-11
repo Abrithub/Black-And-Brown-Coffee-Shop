@@ -60,7 +60,7 @@ const AuthModal = ({ onClose, defaultTab = 'login' }) => {
         setForm({ name: '', email: '', password: '', confirmPassword: '' });
     };
 
-    const inp = "w-full px-4 py-3 bg-[#1a0f0a] border border-[#5D4030] text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-[#C19976] focus:border-[#C19976] outline-none transition";
+    const inp = "w-full px-4 py-2.5 bg-[#1a0f0a] border border-[#5D4030] text-white placeholder-gray-500 rounded-xl focus:ring-2 focus:ring-[#C19976] focus:border-[#C19976] outline-none transition text-sm";
 
     return (
         <div
@@ -69,10 +69,10 @@ const AuthModal = ({ onClose, defaultTab = 'login' }) => {
             aria-modal="true"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] rounded-3xl w-full max-w-md border border-[#5D4030] shadow-2xl overflow-hidden">
+            <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] rounded-3xl w-full max-w-md border border-[#5D4030] shadow-2xl overflow-y-auto max-h-[90vh]">
 
                 {/* Top bar */}
-                <div className="flex items-center justify-between px-8 pt-8 pb-0">
+                <div className="flex items-center justify-between px-6 pt-6 pb-0">
                     <div className="flex items-center gap-3">
                         {/* Coffee logo */}
                         <div className="w-10 h-10 bg-[#C19976] rounded-full flex items-center justify-center">
@@ -97,7 +97,7 @@ const AuthModal = ({ onClose, defaultTab = 'login' }) => {
                 </div>
 
                 {/* Tab switcher */}
-                <div className="flex mx-8 mt-6 bg-[#1a0f0a] rounded-xl p-1 border border-[#5D4030]">
+                <div className="flex mx-6 mt-4 bg-[#1a0f0a] rounded-xl p-1 border border-[#5D4030]">
                     <button
                         onClick={() => switchTab('login')}
                         className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition ${tab === 'login' ? 'bg-[#C19976] text-black' : 'text-gray-400 hover:text-white'}`}
@@ -112,9 +112,9 @@ const AuthModal = ({ onClose, defaultTab = 'login' }) => {
                     </button>
                 </div>
 
-                <div className="px-8 py-6">
+                <div className="px-6 py-4">
                     {/* Heading */}
-                    <div className="mb-6">
+                    <div className="mb-4">
                         <h2 className="text-2xl font-bold text-white">
                             {tab === 'login' ? 'Welcome back' : 'Join us today'}
                         </h2>
@@ -137,7 +137,7 @@ const AuthModal = ({ onClose, defaultTab = 'login' }) => {
 
                     {/* LOGIN FORM */}
                     {tab === 'login' && (
-                        <form onSubmit={handleLogin} className="space-y-4">
+                        <form onSubmit={handleLogin} className="space-y-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Email address</label>
                                 <input
@@ -194,7 +194,7 @@ const AuthModal = ({ onClose, defaultTab = 'login' }) => {
 
                     {/* REGISTER FORM */}
                     {tab === 'register' && (
-                        <form onSubmit={handleRegister} className="space-y-4">
+                        <form onSubmit={handleRegister} className="space-y-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Full name</label>
                                 <input
