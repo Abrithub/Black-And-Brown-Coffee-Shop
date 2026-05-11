@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-// In production uses VITE_API_URL env variable, falls back to localhost for dev
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// Production URL hardcoded as fallback in case env var is missing
+const PRODUCTION_URL = 'https://black-and-brown-coffee-shop-production.up.railway.app';
+const BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? PRODUCTION_URL : 'http://localhost:5000');
 
 const api = axios.create({
     baseURL: BASE_URL,

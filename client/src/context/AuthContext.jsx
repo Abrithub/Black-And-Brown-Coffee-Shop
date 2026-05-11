@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const PRODUCTION_URL = 'https://black-and-brown-coffee-shop-production.up.railway.app';
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? PRODUCTION_URL : 'http://localhost:5000');
 
 const AuthContext = createContext();
 
