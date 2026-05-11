@@ -16,6 +16,7 @@ import "./App.css";
 import CartOrder from "./pages/CartOrder";
 import DisplayCartsPage from "./pages/DisplayCartsPage";
 import QRCodePage from "./pages/QRCodePage";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 function App() {
   return (
@@ -54,6 +55,8 @@ function App() {
               <Route path="/cart" element={<DisplayCartsPage />} />
               <Route path="/order" element={<CartOrder />} />
               <Route path="/qr" element={<QRCodePage />} />
+              <Route path="/payment/success" element={<PaymentSuccess />} />
+              <Route path="/payment/callback" element={<PaymentSuccess />} />
             </Routes>
           </div>
         </Router>
