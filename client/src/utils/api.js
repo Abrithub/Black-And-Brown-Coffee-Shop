@@ -1,3 +1,5 @@
+// Black & Brown Coffee Shop - Production build
+// Vercel deployment with React Router support
 import axios from 'axios';
 
 // Production URL hardcoded as fallback in case env var is missing
