@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 
 // Always points to the live production site
-const SITE_URL = 'https://black-and-brown-coffee-shop-6hn7.vercel.app';
+const SITE_URL = 'https://black-and-brown-coffee-shop.vercel.app';
 
 const QRCodePage = () => {
     const printRef = useRef();
