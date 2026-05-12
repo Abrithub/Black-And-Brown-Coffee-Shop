@@ -1,9 +1,6 @@
-import { Platform } from 'react-native';
-
-// On Android emulator, localhost = 10.0.2.2
-// On physical device, use your machine's local IP e.g. 192.168.x.x:5000
-// Use your PC's local IP so physical devices can reach the backend
-const BASE_URL = 'http://192.168.1.2:5000';
+// Always use the Railway production backend
+// Works for both local development (via network) and production
+const BASE_URL = 'https://black-and-brown-coffee-shop-production.up.railway.app';
 
 let userToken: string | null = null;
 let adminToken: string | null = null;

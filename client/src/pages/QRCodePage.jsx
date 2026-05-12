@@ -1,9 +1,8 @@
 import React, { useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 
-// Change this to your real Vercel URL after deploying
-const SITE_URL = import.meta.env.VITE_SITE_URL || 
-  (typeof window !== 'undefined' ? window.location.origin : 'https://black-and-brown-coffee-shop-6hn7.vercel.app');
+// Always points to the live production site
+const SITE_URL = 'https://black-and-brown-coffee-shop-6hn7.vercel.app';
 
 const QRCodePage = () => {
     const printRef = useRef();

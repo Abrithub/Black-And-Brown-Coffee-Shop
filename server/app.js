@@ -12,14 +12,23 @@ const app = express();
 // Middleware
 app.use(morgan('dev'));
 app.use(cors({
-    origin: [
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'http://localhost:3000',
-        'https://black-and-brown-coffee-shop.vercel.app',
-        'https://black-and-brown-coffee-shop-6hn7.vercel.app',
-        process.env.FRONTEND_URL,
-    ].filter(Boolean),
+    origin: function(origin, callback) {
+        // Allow requests with no origin (mobile apps, curl, etc.)
+        if (!origin) return callback(null, true);
+        
+        const allowed = [
+            'http://localhost:5173',
+            'http://localhost:5174',
+            'http://localhost:3000',
+        ];
+        
+        // Allow any vercel.app domain
+        if (origin.endsWith('.vercel.app') || allowed.includes(origin) || origin === process.env.FRONTEND_URL) {
+            return callback(null, true);
+        }
+        
+        callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
 }));
 app.use(express.json());
