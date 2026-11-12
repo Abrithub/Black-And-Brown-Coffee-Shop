@@ -131,7 +131,7 @@ const ProductForm = ({ initial, onSave, onCancel }) => {
             </div>
             <div className="flex gap-3 pt-2">
                 <button type="submit" disabled={saving} className="flex-1 bg-[#C19976] text-black font-bold py-2.5 rounded-lg hover:bg-amber-600 transition disabled:opacity-60">
-                    {saving ? 'Saving...' : (initial?._id ? 'Update Product' : 'Add Product')}
+                    {saving ? 'Saving...' : (initial?.id || initial?._id ? 'Update Product' : 'Add Product')}
                 </button>
                 <button type="button" onClick={onCancel} className="flex-1 border border-[#5D4030] text-gray-300 py-2.5 rounded-lg hover:border-[#C19976] transition">
                     Cancel
@@ -179,7 +179,7 @@ const AdminDashboard = () => {
     const updateOrderStatus = async (orderId, status) => {
         try {
             await api.put(`/api/orders/${orderId}/status`, { status });
-            setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status } : o));
+            setOrders(prev => prev.map(o => (o.id || o._id) === orderId ? { ...o, status } : o));
         } catch (err) { setError('Failed to update order status'); }
     };
 
@@ -187,14 +187,15 @@ const AdminDashboard = () => {
         if (!window.confirm('Delete this order?')) return;
         try {
             await api.delete(`/api/orders/${orderId}`);
-            setOrders(prev => prev.filter(o => o._id !== orderId));
+            setOrders(prev => prev.filter(o => (o.id || o._id) !== orderId));
         } catch (err) { setError('Failed to delete order'); }
     };
 
     const saveProduct = async (data) => {
-        if (editingProduct?._id) {
-            const res = await api.put(`/api/coffees/${editingProduct._id}`, data);
-            setProducts(prev => prev.map(p => p._id === editingProduct._id ? res.data.coffee : p));
+        const pid = editingProduct?.id || editingProduct?._id;
+        if (pid) {
+            const res = await api.put(`/api/coffees/${pid}`, data);
+            setProducts(prev => prev.map(p => (p.id || p._id) === pid ? res.data.coffee : p));
         } else {
             const res = await api.post('/api/coffees', data);
             setProducts(prev => [res.data.coffee, ...prev]);
@@ -207,7 +208,7 @@ const AdminDashboard = () => {
         if (!window.confirm('Delete this product?')) return;
         try {
             await api.delete(`/api/coffees/${id}`);
-            setProducts(prev => prev.filter(p => p._id !== id));
+            setProducts(prev => prev.filter(p => (p.id || p._id) !== id));
         } catch (err) { setError('Failed to delete product'); }
     };
 
@@ -285,8 +286,8 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-2 mb-6 border-b border-[#5D4030]">
-                    {['orders', 'products', 'analytics'].map(t => (
+                <div className="flex gap-2 mb-6 border-b border-[#5D4030] flex-wrap">
+                    {['orders', 'products', 'analytics', 'branding', 'reports'].map(t => (
                         <button key={t} onClick={() => setTab(t)}
                             className={`px-5 py-2.5 font-semibold capitalize transition rounded-t-lg ${tab === t ? 'bg-[#C19976] text-black' : 'text-gray-400 hover:text-[#C19976]'}`}>
                             {t}
@@ -329,8 +330,8 @@ const AdminDashboard = () => {
                                                 <tr><td colSpan="8" className="p-8 text-center text-gray-400">No orders found</td></tr>
                                             )}
                                             {filteredOrders.map(order => (
-                                                <tr key={order._id} className="border-t border-[#5D4030] hover:bg-[#1a0f0a]/50">
-                                                    <td className="p-4 font-mono text-gray-300">#{order._id?.slice(-6)}</td>
+                                                <tr key={order.id || order._id} className="border-t border-[#5D4030] hover:bg-[#1a0f0a]/50">
+                                                    <td className="p-4 font-mono text-gray-300">#{(order.id || order._id)?.slice(-8).toUpperCase()}</td>
                                                     <td className="p-4">
                                                         <p className="text-white font-medium">{order.customerName}</p>
                                                         <p className="text-gray-400 text-xs">{order.email}</p>
@@ -355,7 +356,7 @@ const AdminDashboard = () => {
                                                         <div className="flex gap-2 items-center">
                                                             <select
                                                                 value={order.status}
-                                                                onChange={e => updateOrderStatus(order._id, e.target.value)}
+                                                                onChange={e => updateOrderStatus(order.id || order._id, e.target.value)}
                                                                 className="bg-[#1a0f0a] border border-[#5D4030] text-white rounded px-2 py-1 text-xs focus:ring-1 focus:ring-[#C19976] outline-none"
                                                             >
                                                                 <option value="pending">Pending</option>
@@ -363,7 +364,7 @@ const AdminDashboard = () => {
                                                                 <option value="completed">Completed</option>
                                                                 <option value="cancelled">Cancelled</option>
                                                             </select>
-                                                            <button onClick={() => deleteOrder(order._id)} className="text-red-400 hover:text-red-300 text-xs px-2 py-1 border border-red-800 rounded hover:bg-red-900/30 transition">
+                                                            <button onClick={() => deleteOrder(order.id || order._id)} className="text-red-400 hover:text-red-300 text-xs px-2 py-1 border border-red-800 rounded hover:bg-red-900/30 transition">
                                                                 Del
                                                             </button>
                                                         </div>
@@ -404,7 +405,7 @@ const AdminDashboard = () => {
 
                                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {products.map(p => (
-                                        <div key={p._id} className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] rounded-xl border border-[#5D4030] hover:border-[#C19976] transition overflow-hidden">
+                                        <div key={p.id || p._id} className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] rounded-xl border border-[#5D4030] hover:border-[#C19976] transition overflow-hidden">
                                             <div className="h-40 overflow-hidden bg-[#1a0f0a]">
                                                 <img src={p.image || 'img/pack.jpg'} alt={p.name} className="w-full h-full object-cover" onError={e => { e.target.src = 'img/pack.jpg'; }} />
                                             </div>
@@ -428,7 +429,7 @@ const AdminDashboard = () => {
                                                         Edit
                                                     </button>
                                                     <button
-                                                        onClick={() => deleteProduct(p._id)}
+                                                        onClick={() => deleteProduct(p.id || p._id)}
                                                         className="flex-1 border border-red-600 text-red-400 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-600 hover:text-white transition"
                                                     >
                                                         Delete
@@ -458,8 +459,156 @@ const AdminDashboard = () => {
                                 </div>
                             </div>
                         )}
+
+                        {/* ── BRANDING TAB ── */}
+                        {tab === 'branding' && <BrandingTab />}
+
+                        {/* ── REPORTS TAB ── */}
+                        {tab === 'reports' && <ReportsTab orders={orders} stats={stats} />}
                     </>
                 )}
+            </div>
+        </div>
+    );
+};
+
+// ── Branding Tab ───────────────────────────────────────────────────────────
+const BrandingTab = () => {
+    const [brand, setBrand] = useState({});
+    const [saving, setSaving] = useState(false);
+    const [msg, setMsg] = useState('');
+
+    useEffect(() => {
+        api.get('/api/brand').then(res => {
+            if (res.data.success) setBrand(res.data.brand);
+        }).catch(() => {});
+    }, []);
+
+    const set = (k, v) => setBrand(b => ({ ...b, [k]: v }));
+
+    const save = async () => {
+        setSaving(true); setMsg('');
+        try {
+            await api.put('/api/brand', brand);
+            setMsg('✅ Saved!');
+        } catch { setMsg('❌ Save failed'); }
+        finally { setSaving(false); setTimeout(() => setMsg(''), 3000); }
+    };
+
+    const inp = "w-full p-2.5 bg-[#1a0f0a] border border-[#5D4030] rounded-lg text-white text-sm focus:ring-1 focus:ring-[#C19976] outline-none";
+
+    const fields = [
+        { key: 'shop_name',        label: 'Shop Name' },
+        { key: 'tagline',          label: 'Tagline' },
+        { key: 'phone',            label: 'Phone' },
+        { key: 'email',            label: 'Email' },
+        { key: 'address',          label: 'Address' },
+        { key: 'instagram',        label: 'Instagram URL' },
+        { key: 'telegram',         label: 'Telegram Handle' },
+        { key: 'facebook',         label: 'Facebook URL' },
+        { key: 'delivery_fee',     label: 'Delivery Fee (birr)' },
+        { key: 'free_delivery_min',label: 'Free Delivery Above (birr)' },
+        { key: 'exchange_rate',    label: 'Exchange Rate (birr per $)' },
+        { key: 'hero_tagline',     label: 'Hero Section Tagline' },
+        { key: 'about_text',       label: 'About Us Text', textarea: true },
+    ];
+
+    return (
+        <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] rounded-2xl border border-[#5D4030] p-6">
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-[#C19976]">Branding & Settings</h2>
+                <div className="flex items-center gap-3">
+                    {msg && <span className="text-sm text-green-400">{msg}</span>}
+                    <button onClick={save} disabled={saving}
+                        className="bg-[#C19976] text-black font-bold px-5 py-2 rounded-lg hover:bg-amber-600 transition disabled:opacity-60">
+                        {saving ? 'Saving...' : 'Save Changes'}
+                    </button>
+                </div>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+                {fields.map(f => (
+                    <div key={f.key} className={f.textarea ? 'col-span-2' : ''}>
+                        <label className="text-gray-400 text-xs mb-1 block">{f.label}</label>
+                        {f.textarea
+                            ? <textarea className={inp + ' resize-none'} rows={3} value={brand[f.key] || ''} onChange={e => set(f.key, e.target.value)} />
+                            : <input className={inp} value={brand[f.key] || ''} onChange={e => set(f.key, e.target.value)} />
+                        }
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+// ── Reports Tab ────────────────────────────────────────────────────────────
+const ReportsTab = ({ orders, stats }) => {
+    const [sending, setSending] = useState(false);
+    const [msg, setMsg]         = useState('');
+    const [dateFrom, setDateFrom] = useState(() => {
+        const d = new Date(); d.setDate(d.getDate() - 30);
+        return d.toISOString().slice(0,10);
+    });
+    const [dateTo, setDateTo] = useState(() => new Date().toISOString().slice(0,10));
+
+    const downloadCSV = () => {
+        window.open(`/api/orders/report/sales?from=${dateFrom}&to=${dateTo}`, '_blank');
+    };
+
+    const sendReport = async () => {
+        setSending(true); setMsg('');
+        try {
+            await api.post('/api/brand/daily-report');
+            setMsg('✅ Report sent to Telegram!');
+        } catch { setMsg('❌ Failed — check Telegram config in .env'); }
+        finally { setSending(false); setTimeout(() => setMsg(''), 4000); }
+    };
+
+    const inp = "p-2.5 bg-[#1a0f0a] border border-[#5D4030] rounded-lg text-white text-sm focus:ring-1 focus:ring-[#C19976] outline-none";
+
+    return (
+        <div className="space-y-6">
+            {/* Stats summary */}
+            <div className="grid sm:grid-cols-2 gap-4">
+                <div className="bg-[#2A1A10] border border-[#5D4030] rounded-2xl p-5">
+                    <p className="text-gray-400 text-xs mb-1">Total Revenue</p>
+                    <p className="text-3xl font-bold text-[#C19976]">{Number(stats.totalSales).toFixed(2)} birr</p>
+                </div>
+                <div className="bg-[#2A1A10] border border-[#5D4030] rounded-2xl p-5">
+                    <p className="text-gray-400 text-xs mb-1">Total Orders</p>
+                    <p className="text-3xl font-bold text-[#C19976]">{stats.totalOrders}</p>
+                </div>
+            </div>
+
+            {/* CSV export */}
+            <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] rounded-2xl border border-[#5D4030] p-6">
+                <h3 className="text-lg font-bold text-[#C19976] mb-4">📥 Export Sales Report (CSV)</h3>
+                <div className="flex flex-wrap gap-3 items-end">
+                    <div>
+                        <label className="text-gray-400 text-xs mb-1 block">From</label>
+                        <input type="date" className={inp} value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+                    </div>
+                    <div>
+                        <label className="text-gray-400 text-xs mb-1 block">To</label>
+                        <input type="date" className={inp} value={dateTo} onChange={e => setDateTo(e.target.value)} />
+                    </div>
+                    <button onClick={downloadCSV}
+                        className="bg-[#C19976] text-black font-bold px-5 py-2.5 rounded-lg hover:bg-amber-600 transition">
+                        Download CSV
+                    </button>
+                </div>
+            </div>
+
+            {/* Telegram report */}
+            <div className="bg-gradient-to-br from-[#2A1A10] to-[#1a0f0a] rounded-2xl border border-[#5D4030] p-6">
+                <h3 className="text-lg font-bold text-[#C19976] mb-2">📱 Telegram Daily Report</h3>
+                <p className="text-gray-400 text-sm mb-4">Send today's sales summary to your Telegram chat. Configure TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in server/.env first.</p>
+                <div className="flex items-center gap-3">
+                    <button onClick={sendReport} disabled={sending}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-lg transition disabled:opacity-60">
+                        {sending ? 'Sending...' : '📤 Send to Telegram'}
+                    </button>
+                    {msg && <span className="text-sm text-green-400">{msg}</span>}
+                </div>
             </div>
         </div>
     );

@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { LangProvider } from "./context/LangContext";
 import Navbar from "./Components/Navbar";
 import Home from "./Components/Home";
 import Menu from "./Components/Menu";
@@ -17,51 +18,55 @@ import CartOrder from "./pages/CartOrder";
 import DisplayCartsPage from "./pages/DisplayCartsPage";
 import QRCodePage from "./pages/QRCodePage";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import OrderHistory from "./pages/OrderHistory";
 
 function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <Router>
-          <div className="relative bg-[#1a0f0a] text-white">
-            <Navbar />
-            <CartSidebar />
-            <OrderModal />
+    <LangProvider>
+      <AuthProvider>
+        <CartProvider>
+          <Router>
+            <div className="relative bg-[#1a0f0a] text-white">
+              <Navbar />
+              <CartSidebar />
+              <OrderModal />
 
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <>
-                    <div className="relative min-h-screen">
-                      <img
-                        src="img/hero.jpg"
-                        alt="Coffee Shop Background"
-                        className="absolute inset-0 w-full h-full object-cover z-0"
-                      />
-                      <div className="relative z-10">
-                        <Home />
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <>
+                      <div className="relative min-h-screen">
+                        <img
+                          src="img/hero.jpg"
+                          alt="Coffee Shop Background"
+                          className="absolute inset-0 w-full h-full object-cover z-0"
+                        />
+                        <div className="relative z-10">
+                          <Home />
+                        </div>
                       </div>
-                    </div>
-                    <Menu />
-                    <Products />
-                    <Promotion />
-                    <AboutUs />
-                    <Contact />
-                    <Footer />
-                  </>
-                }
-              />
-              <Route path="/cart" element={<DisplayCartsPage />} />
-              <Route path="/order" element={<CartOrder />} />
-              <Route path="/qr" element={<QRCodePage />} />
-              <Route path="/payment/success" element={<PaymentSuccess />} />
-              <Route path="/payment/callback" element={<PaymentSuccess />} />
-            </Routes>
-          </div>
-        </Router>
-      </CartProvider>
-    </AuthProvider>
+                      <Menu />
+                      <Products />
+                      <Promotion />
+                      <AboutUs />
+                      <Contact />
+                      <Footer />
+                    </>
+                  }
+                />
+                <Route path="/cart" element={<DisplayCartsPage />} />
+                <Route path="/order" element={<CartOrder />} />
+                <Route path="/qr" element={<QRCodePage />} />
+                <Route path="/payment/success" element={<PaymentSuccess />} />
+                <Route path="/payment/callback" element={<PaymentSuccess />} />
+                <Route path="/orders" element={<OrderHistory />} />
+              </Routes>
+            </div>
+          </Router>
+        </CartProvider>
+      </AuthProvider>
+    </LangProvider>
   );
 }
 

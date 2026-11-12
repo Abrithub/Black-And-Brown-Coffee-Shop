@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import { useLang } from "../context/LangContext";
 import api from "../utils/api";
 
 const PAYMENT_METHODS = [
@@ -12,6 +13,7 @@ const PAYMENT_METHODS = [
 const CartOrder = ({ onClose }) => {
   const { cart, clearCart, getCartTotal } = useCart();
   const { user } = useAuth();
+  const { t, lang } = useLang();
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -77,7 +79,7 @@ const CartOrder = ({ onClose }) => {
           paymentMeta: {},
         });
         clearCart();
-        alert("✅ Order placed! We'll contact you soon.");
+        alert(t('orderPlaced'));
         onClose();
       }
     } catch (err) {
@@ -100,13 +102,13 @@ const CartOrder = ({ onClose }) => {
         <button onClick={onClose} className="flex items-center text-gray-400 hover:text-white transition text-sm">
           <ArrowLeft size={16} className="mr-1" /> Back
         </button>
-        <h2 className="text-lg font-bold text-[#C19976]">Complete Your Order</h2>
+        <h2 className="text-lg font-bold text-[#C19976]">{t('completeOrder')}</h2>
         <div className="w-16" />
       </div>
 
       {/* Order Summary */}
       <div className="bg-[#1a0f0a] rounded-2xl p-4 mb-5 border border-[#5D4030]">
-        <p className="text-[#C19976] font-semibold text-sm mb-3">Order Summary</p>
+        <p className="text-[#C19976] font-semibold text-sm mb-3">{t('orderSummary')}</p>
         <div className="space-y-1.5 max-h-32 overflow-y-auto">
           {cart.map((item) => (
             <div key={item.id} className="flex justify-between text-sm text-gray-300">
@@ -117,14 +119,14 @@ const CartOrder = ({ onClose }) => {
         </div>
         <div className="border-t border-[#5D4030] mt-3 pt-3 space-y-1">
           <div className="flex justify-between text-xs text-gray-400">
-            <span>Delivery</span>
+            <span>{t('delivery')}</span>
             <span className={deliveryFee === 0 ? "text-green-400" : ""}>
-              {deliveryFee === 0 ? "Free 🎉" : `${deliveryFee} birr`}
+              {deliveryFee === 0 ? t('free') : `${deliveryFee} ${lang === 'am' ? 'ብር' : 'birr'}`}
             </span>
           </div>
           <div className="flex justify-between font-bold text-[#C19976] text-base">
-            <span>Total</span>
-            <span>{grandTotal} birr</span>
+            <span>{t('total')}</span>
+            <span>{grandTotal} {lang === 'am' ? 'ብር' : 'birr'}</span>
           </div>
         </div>
       </div>

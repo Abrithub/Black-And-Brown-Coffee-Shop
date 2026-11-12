@@ -52,7 +52,7 @@ const PaymentSuccess = () => {
                         {order && (
                             <div className="bg-[#1a0f0a] rounded-xl p-4 mb-6 text-left border border-[#5D4030]">
                                 <p className="text-[#C19976] font-semibold mb-2 text-sm">Order Details</p>
-                                <p className="text-gray-300 text-sm">Order ID: <span className="font-mono">#{order._id?.slice(-6)}</span></p>
+                                <p className="text-gray-300 text-sm">Order ID: <span className="font-mono">#{(order.id || order._id)?.slice(-8).toUpperCase()}</span></p>
                                 <p className="text-gray-300 text-sm">Customer: {order.customerName}</p>
                                 <p className="text-gray-300 text-sm">Total: <span className="text-[#C19976] font-bold">{order.total} birr</span></p>
                                 <p className="text-gray-300 text-sm">Status: <span className="text-blue-400 capitalize">{order.status}</span></p>

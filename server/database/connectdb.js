@@ -1,32 +1,34 @@
-import mongoose from 'mongoose';
+import pg from 'pg';
+const { Pool } = pg;
 
-const connectDB = async (retries = 5) => {
-  for (let i = 1; i <= retries; i++) {
-    try {
-      const conn = await mongoose.connect(process.env.MONGO_URI, {
-        serverSelectionTimeoutMS: 10000,
-        socketTimeoutMS: 45000,
-        connectTimeoutMS: 10000,
-      });
-      console.log(`✅ MongoDB connected: ${conn.connection.host}`);
+const pool = new Pool({
+  host:     String(process.env.PG_HOST     || 'localhost'),
+  port:     Number(process.env.PG_PORT     || 5432),
+  database: String(process.env.PG_DATABASE || 'coffeedb'),
+  user:     String(process.env.PG_USER     || 'postgres'),
+  password: String(process.env.PG_PASSWORD || 'postgres'),
+  ssl: process.env.PG_SSL === 'true' ? { rejectUnauthorized: false } : false,
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+});
 
-      mongoose.connection.on('disconnected', () => {
-        console.warn('⚠️  MongoDB disconnected. Reconnecting...');
-        setTimeout(() => connectDB(3), 5000);
-      });
+pool.on('error', (err) => {
+  console.error('⚠️  Unexpected PostgreSQL pool error:', err.message);
+});
 
-      return;
-    } catch (error) {
-      console.error(`❌ MongoDB attempt ${i}/${retries} failed: ${error.message}`);
-      if (i === retries) {
-        console.error('All retries exhausted. Exiting.');
-        process.exit(1);
-      }
-      const wait = i * 3000;
-      console.log(`Retrying in ${wait / 1000}s...`);
-      await new Promise(r => setTimeout(r, wait));
-    }
+// Test connection and log
+const connectDB = async () => {
+  try {
+    const client = await pool.connect();
+    const { rows } = await client.query('SELECT version()');
+    console.log(`✅ PostgreSQL connected: ${rows[0].version.split(',')[0]}`);
+    client.release();
+  } catch (err) {
+    console.error('❌ PostgreSQL connection failed:', err.message);
+    process.exit(1);
   }
 };
 
+export { pool };
 export default connectDB;

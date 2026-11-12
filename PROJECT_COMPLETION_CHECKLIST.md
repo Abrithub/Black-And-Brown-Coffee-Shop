@@ -1,193 +1,264 @@
-# Coffee Shop Project - Completion Checklist
+# Black & Brown Coffee Shop — Project Completion Checklist
+> Last updated: November 2026
+> Stack: React + Vite (frontend) · Node.js + Express (backend) · PostgreSQL (database)
 
-## 🔴 Critical Issues to Fix
+---
 
-### 1. **Backend Authentication System** (HIGH PRIORITY)
-- ❌ **Missing**: User model for customers and admins
-- ❌ **Missing**: Authentication routes (`/api/auth/login`, `/api/auth/register`, `/api/admin/login`)
-- ❌ **Missing**: Authentication controllers
-- ❌ **Missing**: JWT token generation and verification middleware
-- ❌ **Missing**: Password hashing (bcrypt)
-- ❌ **Missing**: Admin model or role-based authentication
+## ✅ COMPLETED — Backend
 
-**Files to Create:**
-- `server/models/User.js` - Customer user model
-- `server/models/Admin.js` - Admin user model (or add role field to User)
-- `server/controllers/authController.js` - Authentication logic
-- `server/controllers/adminController.js` - Admin authentication
-- `server/routes/authRoutes.js` - Customer auth routes
-- `server/routes/adminRoutes.js` - Admin auth routes
-- `server/middleware/authMiddleware.js` - JWT verification middleware
+### Database
+- ✅ PostgreSQL database (`coffeedb`) set up and running locally
+- ✅ Full SQL schema with tables: `users`, `coffees`, `orders`, `order_items`
+- ✅ UUID primary keys on all tables
+- ✅ Indexes on `orders.customer_id`, `orders.status`, `coffees.category`, `coffees.featured`
+- ✅ Auto-update `updated_at` triggers on all tables
+- ✅ `pg` (node-postgres) pool connection with retry and error handling
+- ✅ Environment variables: `PG_HOST`, `PG_PORT`, `PG_DATABASE`, `PG_USER`, `PG_PASSWORD`
+- ✅ `scripts/setupDb.js` — one-command schema runner
+- ✅ `scripts/seedAdmin.js` — seeds default admin account
+- ✅ `scripts/seedProducts.js` — seeds 12 shop products
+- ✅ `scripts/seedMenu.js` — seeds 12 Beverage menu items
 
-**Dependencies to Add:**
-- `jsonwebtoken` - For JWT tokens
-- `bcryptjs` - For password hashing
+### Authentication
+- ✅ User registration (`POST /api/auth/register`) with bcrypt password hashing
+- ✅ User login (`POST /api/auth/login`) — email or username
+- ✅ Admin login (`POST /api/admin/login`)
+- ✅ Admin registration (`POST /api/admin/register`) — existing admin only
+- ✅ First-admin setup (`POST /api/admin/register-first`) — public, one-time
+- ✅ `GET /api/auth/me` — restore session from token
+- ✅ `GET /api/admin/me` — restore admin session
+- ✅ JWT token generation (7-day expiry)
+- ✅ `protect` middleware — requires valid JWT
+- ✅ `adminProtect` middleware — requires admin role
+- ✅ `optionalAuth` middleware — attaches user if token present, continues as guest
 
-### 2. **Order Management System** (HIGH PRIORITY)
-- ❌ **Missing**: Order model in database
-- ❌ **Missing**: Order API endpoints (create, read, update, delete)
-- ❌ **Missing**: Order controllers
-- ❌ **Current Issue**: Orders stored only in localStorage (not persistent)
+### Products / Coffees API
+- ✅ `GET /api/coffees` — list all, supports `?category=` and `?featured=true`
+- ✅ `GET /api/coffees/:id` — single product
+- ✅ `POST /api/coffees` — create product (admin only)
+- ✅ `PUT /api/coffees/:id` — update product (admin only)
+- ✅ `DELETE /api/coffees/:id` — delete product (admin only)
+- ✅ All fields: name, origin, price, description, image, category, rating, stock, featured, weight, roastLevel, flavorProfile, material, capacity
 
-**Files to Create:**
-- `server/models/Order.js` - Order schema
-- `server/controllers/orderController.js` - Order CRUD operations
-- `server/routes/orderRoutes.js` - Order API routes
+### Orders API
+- ✅ `POST /api/orders` — create order (guest or logged-in)
+- ✅ `GET /api/orders` — all orders (admin only), supports `?status=` filter
+- ✅ `GET /api/orders/:id` — single order (protected)
+- ✅ `GET /api/orders/customer/:customerId` — customer's own orders (protected)
+- ✅ `PUT /api/orders/:id/status` — update status (admin only)
+- ✅ `PUT /api/orders/:id` — full order update (admin only)
+- ✅ `DELETE /api/orders/:id` — delete order (admin only)
+- ✅ `GET /api/orders/stats/summary` — dashboard stats (admin only)
+- ✅ Order total always recalculated server-side (tamper-proof)
+- ✅ Order items stored in separate `order_items` table with cascade delete
 
-### 3. **Frontend Dependencies** (MEDIUM PRIORITY)
-- ❌ **Missing**: `axios` package (used but not installed)
-- ❌ **Missing**: `react-router-dom` package (used but not installed)
-- ❌ **Missing**: API base URL configuration
+### Payment
+- ✅ `POST /api/payment/initialize` — create order + init Chapa checkout
+- ✅ `GET /api/payment/verify/:txRef` — verify Chapa payment after redirect
+- ✅ `POST /api/payment/webhook` — Chapa server-to-server callback
+- ✅ Failed Chapa init cancels the order automatically
+- ✅ txRef stored in `payment_meta` JSONB column
 
-**Fix:**
-- Add to `client/package.json`:
-  - `axios`
-  - `react-router-dom`
-- Create `client/src/config/api.js` for API base URL
+### Email Notifications
+- ✅ `utils/mailer.js` — Nodemailer transporter (Gmail / SMTP)
+- ✅ Order confirmation email sent on order creation (Cash + Chapa)
+- ✅ Status update email sent when admin changes order status
+- ✅ Graceful skip if mail env vars not configured
+- ✅ Branded HTML email templates (coffee shop theme)
 
-### 4. **Import Path Issues** (MEDIUM PRIORITY)
-- ❌ **Issue**: Inconsistent import paths (`Context` vs `context`)
-- Files with wrong imports:
-  - `client/src/App.jsx` - imports from `./Context/AuthContext` (should be `./context/AuthContext`)
-  - `client/src/Components/Auth/CustomerAuth.jsx` - imports from `../../Context/AuthContext`
-  - `client/src/Components/Auth/AdminAuth.jsx` - imports from `../../Context/AuthContext`
-  - `client/src/Components/Dashboard/AdminDashboard.jsx` - imports from `../../Context/AuthContext`
-  - `client/src/Components/Navbar.jsx` - imports from `../Context/AuthContext`
-  - `client/src/Components/Products.jsx` - imports from `../Context/AuthContext`
+---
 
-### 5. **Database Connection** (HIGH PRIORITY)
-- ❌ **Issue**: `server/database/connectdb.js` is empty
-- ❌ **Missing**: `.env` file with MongoDB connection string
-- ❌ **Missing**: `.env.example` file for reference
+## ✅ COMPLETED — Frontend
 
-**Fix:**
-- Implement database connection in `connectdb.js`
-- Create `.env` file (user should add their MongoDB URI)
-- Create `.env.example` file
+### Authentication UI
+- ✅ Login modal (email/password)
+- ✅ Register modal (name, email, password)
+- ✅ Admin login flow (auto-detects admin role)
+- ✅ Session restored from localStorage on page load
+- ✅ Logout clears both `userToken` and `adminToken`
+- ✅ Auth-required actions prompt login modal
 
-### 6. **Coffee Model Enhancement** (LOW PRIORITY)
-- ⚠️ **Issue**: Coffee model missing fields used in frontend:
-  - `image` - Product image path
-  - `category` - Product category
-  - `rating` - Product rating
-  - `stock` - Inventory count
-  - `featured` - Featured flag
-  - Additional fields like `weight`, `roastLevel`, `flavorProfile`, etc.
+### Navbar
+- ✅ Responsive (desktop + mobile hamburger menu)
+- ✅ Shows logged-in user name and avatar initial
+- ✅ "📦 Orders" button for logged-in customers
+- ✅ Admin badge and QR Code button for admins
+- ✅ Logout button
 
-### 7. **API Integration** (MEDIUM PRIORITY)
-- ❌ **Issue**: Products are hardcoded in frontend components
-- ❌ **Missing**: API calls to fetch products from backend
-- Files to update:
-  - `client/src/Components/Products.jsx` - Fetch from `/api/coffees`
-  - `client/src/Components/Menu.jsx` - Fetch from `/api/coffees` or separate menu endpoint
+### Homepage Sections
+- ✅ Hero section with background image
+- ✅ Menu section — **fetches from `/api/coffees?category=Beverage`** (database-driven)
+- ✅ Products section — **fetches from `/api/coffees`** (database-driven, hardcoded fallback if API down)
+- ✅ Promotions section
+- ✅ About Us section
+- ✅ Contact section
+- ✅ Footer
 
-### 8. **Authentication Context Issues** (MEDIUM PRIORITY)
-- ❌ **Issue**: `login` and `register` functions in AuthContext are not `async` but use `await`
-- ❌ **Issue**: Missing `isAdmin` check in AuthContext
-- ❌ **Issue**: No token storage in localStorage
-- ❌ **Issue**: No axios interceptor for adding auth tokens to requests
+### Cart
+- ✅ Cart sidebar (slide-in)
+- ✅ Add to cart (requires login for shop products)
+- ✅ Remove from cart
+- ✅ Cart item count badge on navbar
+- ✅ Cart total calculation
+- ✅ "Place Order" triggers order modal
 
-### 9. **Cart Context Enhancement** (LOW PRIORITY)
-- ⚠️ **Missing**: Update quantity function (only add/remove)
-- ⚠️ **Missing**: Cart persistence in localStorage
-- ⚠️ **Missing**: Cart sync with backend (if user is logged in)
+### Order Flow (Customer)
+- ✅ Order form: name, email, phone, address
+- ✅ Auto-fills from logged-in user
+- ✅ Payment method selection: Chapa (online) or Cash (delivery)
+- ✅ Chapa redirects to Chapa checkout
+- ✅ Cash order placed directly with confirmation
+- ✅ Cart cleared after successful order
+- ✅ Delivery fee: free over 500 birr, 50 birr otherwise
 
-### 10. **Environment Configuration** (MEDIUM PRIORITY)
-- ❌ **Missing**: `.env` file in server directory
-- ❌ **Missing**: `.env.example` file
-- ❌ **Missing**: JWT secret key configuration
-- ❌ **Missing**: Port configuration
+### Payment Success Page
+- ✅ `/payment/success` — verifies payment via `txRef`
+- ✅ Shows spinner while verifying
+- ✅ Shows order details on success
+- ✅ Error state with retry link
+- ✅ Uses `order.id` (UUID) correctly
 
-## 📋 Implementation Priority Order
+### Order History Page (Customer)
+- ✅ `/orders` — requires login, redirects if not authenticated
+- ✅ Filter tabs: All / Pending / Processing / Completed / Cancelled
+- ✅ Expandable order cards showing items, total, payment, address
+- ✅ Status badges with color coding
+- ✅ Empty state with "Shop Now" button
 
-### Phase 1: Critical Backend Setup
-1. ✅ Fix database connection (`connectdb.js`)
-2. ✅ Create User model
-3. ✅ Create Order model
-4. ✅ Enhance Coffee model with missing fields
-5. ✅ Set up authentication system (JWT, bcrypt)
-6. ✅ Create auth routes and controllers
-7. ✅ Create order routes and controllers
+### Admin Dashboard
+- ✅ **Orders tab**
+  - ✅ Loads all orders from `/api/orders`
+  - ✅ Filter by status (All / Pending / Processing / Completed / Cancelled)
+  - ✅ Table: Order ID (UUID), customer name/email/phone, items, total, payment, status, date
+  - ✅ Inline status update dropdown (calls `PUT /api/orders/:id/status`)
+  - ✅ Delete order button
+  - ✅ Auto-refreshes every 30 seconds
+- ✅ **Products tab**
+  - ✅ Loads all products from `/api/coffees`
+  - ✅ Grid of product cards with image, name, category, price, stock level
+  - ✅ "+ Add Product" button — inline form
+  - ✅ "Edit" button — pre-fills form with product data
+  - ✅ "Delete" button — with confirmation
+  - ✅ All CRUD operations persist to PostgreSQL
+  - ✅ Changes reflect immediately on the homepage (Menu + Products sections)
+- ✅ **Analytics tab**
+  - ✅ Status count cards (pending/processing/completed/cancelled)
+  - ✅ Bar chart: orders per day (last 7 days)
+  - ✅ Line chart: monthly revenue
+- ✅ **Stats bar** (always visible): Total Sales, Total Orders, Today's Sales, Today's Orders
+- ✅ QR Code button
 
-### Phase 2: Frontend Fixes
-1. ✅ Fix import paths (Context → context)
-2. ✅ Install missing dependencies (axios, react-router-dom)
-3. ✅ Set up API configuration
-4. ✅ Fix AuthContext async issues
-5. ✅ Add token storage and axios interceptors
-6. ✅ Integrate API calls for products
+---
 
-### Phase 3: Integration & Testing
-1. ✅ Connect frontend to backend APIs
-2. ✅ Test authentication flow
-3. ✅ Test order creation
-4. ✅ Test admin dashboard
-5. ✅ Add error handling
+## ⚠️ KNOWN ISSUES / PENDING
 
-### Phase 4: Polish & Enhancement
-1. ✅ Add cart persistence
-2. ✅ Add loading states
-3. ✅ Add error messages
-4. ✅ Add form validation
-5. ✅ Add environment variable examples
+### Products Page
+- ⚠️ `Products.jsx` still has 12 hardcoded fallback items — these show if the API fails or returns empty
+- ⚠️ Admin-added products that are NOT `Beverage` category appear in Products section only, not Menu section (by design — Menu shows Beverage only)
 
-## 🛠️ Required Dependencies
+### Menu Section
+- ⚠️ Menu items only show if `Beverage` category items exist in the database
+- ⚠️ Run `node scripts/seedMenu.js` to populate the menu with the 12 default drinks
 
-### Server (`server/package.json`)
-```json
-{
-  "dependencies": {
-    "jsonwebtoken": "^9.0.0",
-    "bcryptjs": "^2.4.3"
-  }
-}
+### Email
+- ⚠️ Email notifications are disabled until `MAIL_USER` and `MAIL_PASS` are set in `server/.env`
+- ⚠️ Gmail requires an App Password (not your Gmail login password)
+
+### Chapa Payment
+- ⚠️ Currently using test key (`CHASECK_TEST-...`) — replace with live key for production
+- ⚠️ Webhook URL must be publicly accessible for Chapa to call it (not localhost)
+
+---
+
+## 🚀 HOW TO RUN
+
+### Terminal 1 — Backend:
+```powershell
+$env:PATH += ";C:\Program Files\nodejs"
+cd "C:\Users\USER\Desktop\CFS\Black-And-Brown-Coffee-Shop\server"
+npm run dev
 ```
 
-### Client (`client/package.json`)
-```json
-{
-  "dependencies": {
-    "axios": "^1.6.0",
-    "react-router-dom": "^6.20.0"
-  }
-}
+### Terminal 2 — Frontend:
+```powershell
+$env:PATH += ";C:\Program Files\nodejs"
+cd "C:\Users\USER\Desktop\CFS\Black-And-Brown-Coffee-Shop\client"
+npm run dev
 ```
 
-## 📝 Environment Variables Needed
+### Browser: http://localhost:5174
 
-### Server `.env` file:
+---
+
+## 🔑 DEFAULT CREDENTIALS
+
+| Role  | Email                   | Password  |
+|-------|-------------------------|-----------|
+| Admin | admin@coffeeshop.com    | admin123  |
+
+> ⚠️ Change the admin password after first login!
+
+---
+
+## 🗄️ DATABASE SETUP (one-time)
+
+```powershell
+# 1. Create database
+$env:PGPASSWORD="postgres"; psql -U postgres -c "CREATE DATABASE coffeedb;"
+
+# 2. Create tables
+node scripts/setupDb.js
+
+# 3. Seed data
+node scripts/seedAdmin.js
+node scripts/seedProducts.js
+node scripts/seedMenu.js
 ```
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_super_secret_jwt_key_here
-NODE_ENV=development
+
+---
+
+## 📁 PROJECT STRUCTURE
+
 ```
-
-## ✅ What's Already Working
-
-- ✅ Frontend UI components (Home, Menu, Products, Cart, etc.)
-- ✅ Basic Coffee CRUD API endpoints
-- ✅ Cart context and functionality (frontend)
-- ✅ Admin dashboard UI
-- ✅ Order modal UI
-- ✅ React Router setup
-- ✅ Tailwind CSS styling
-- ✅ Basic server structure
-
-## 🎯 Summary
-
-**Total Critical Issues**: 10
-**High Priority**: 5
-**Medium Priority**: 4
-**Low Priority**: 1
-
-The main blockers are:
-1. **No authentication system** - Users can't actually log in
-2. **No order persistence** - Orders only in localStorage
-3. **Missing dependencies** - App won't run without axios and react-router-dom
-4. **Import path errors** - App will crash on load
-5. **No database connection** - Backend can't connect to MongoDB
-
-Once these are fixed, the project will be functional. The remaining items are enhancements for better user experience and data persistence.
-
-
+Black-And-Brown-Coffee-Shop/
+├── client/                        # React + Vite frontend
+│   └── src/
+│       ├── Components/
+│       │   ├── Dashboard/
+│       │   │   └── AdminDashboard.jsx   # Admin orders + products + analytics
+│       │   ├── Menu.jsx                 # DB-driven menu (Beverage category)
+│       │   ├── Products.jsx             # DB-driven shop products
+│       │   ├── Navbar.jsx               # Auth-aware navbar
+│       │   └── ...
+│       ├── pages/
+│       │   ├── CartOrder.jsx            # Order checkout form
+│       │   ├── OrderHistory.jsx         # Customer order history
+│       │   └── PaymentSuccess.jsx       # Chapa payment result
+│       ├── context/
+│       │   ├── AuthContext.jsx          # Login/register/session
+│       │   └── CartContext.jsx          # Cart state
+│       └── utils/api.js                 # Axios instance + interceptors
+│
+└── server/                        # Node.js + Express backend
+    ├── controllers/
+    │   ├── authController.js            # Register/login
+    │   ├── adminController.js           # Admin auth
+    │   ├── coffeeController.js          # Product CRUD
+    │   ├── orderController.js           # Order CRUD + stats
+    │   └── paymentController.js         # Chapa integration
+    ├── models/
+    │   ├── User.js                      # pg query helpers
+    │   ├── Coffee.js                    # pg query helpers
+    │   └── Order.js                     # pg query helpers (with order_items)
+    ├── routes/                          # Express routers
+    ├── middleware/authMiddleware.js      # JWT protect/adminProtect/optionalAuth
+    ├── utils/mailer.js                  # Nodemailer email utility
+    ├── database/
+    │   ├── connectdb.js                 # pg Pool connection
+    │   └── schema.sql                   # Full PostgreSQL schema
+    └── scripts/
+        ├── setupDb.js                   # Run schema
+        ├── seedAdmin.js                 # Seed admin user
+        ├── seedProducts.js              # Seed shop products
+        └── seedMenu.js                  # Seed menu beverages
+```

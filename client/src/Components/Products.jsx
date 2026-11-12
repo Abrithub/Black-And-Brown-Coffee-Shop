@@ -200,7 +200,7 @@ const Products = () => {
         const data = res.data?.coffees || (Array.isArray(res.data) ? res.data : []);
         if (data.length === 0) return; // keep fallback
         const mapped = data.map((coffee) => ({
-          id: coffee._id,
+          id: coffee.id || coffee._id,
           name: coffee.name,
           category: coffee.category,
           price: coffee.price,

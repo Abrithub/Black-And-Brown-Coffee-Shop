@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from '../context/AuthContext';
 import AuthModal from './Auth/AuthModal';
 import AdminDashboard from './Dashboard/AdminDashboard';
 import { useCart } from "../context/CartContext";
+import LangSwitcher from './LangSwitcher';
+import { useLang } from '../context/LangContext';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [authTab, setAuthTab] = useState('login');
+  const [showDashboard, setShowDashboard] = useState(false);
   const { cart, toggleCart } = useCart();
   const { user, admin, isAdmin, logout } = useAuth();
+  const { t } = useLang();
+  const navigate = useNavigate();
 
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const loggedInUser = user || admin;
@@ -58,6 +64,8 @@ const Navbar = () => {
 
           {/* Desktop right controls */}
           <div className="hidden md:flex items-center space-x-3">
+            {/* Language switcher */}
+            <LangSwitcher />
 
             {/* Cart button */}
             <button
@@ -89,11 +97,32 @@ const Navbar = () => {
                     {isAdmin && <p className="text-[#C19976] text-xs">Admin</p>}
                   </div>
                 </div>
+                {isAdmin && (
+                  <button
+                    onClick={() => setShowDashboard(d => !d)}
+                    className={`text-sm font-semibold px-3 py-2 rounded-lg border transition ${
+                      showDashboard
+                        ? 'bg-[#C19976] text-black border-[#C19976]'
+                        : 'text-[#C19976] border-[#C19976] hover:bg-[#C19976] hover:text-black'
+                    }`}
+                  >
+                    {showDashboard ? '🏠 Shop View' : '📊 Dashboard'}
+                  </button>
+                )}
+                {!isAdmin && (
+                  <button
+                    onClick={() => navigate('/orders')}
+                    className="text-sm text-gray-400 hover:text-[#C19976] border border-[#5D4030] hover:border-[#C19976] px-3 py-2 rounded-lg transition"
+                    title={t('myOrders')}
+                  >
+                    📦 {t('myOrders')}
+                  </button>
+                )}
                 <button
                   onClick={logout}
                   className="text-sm text-gray-400 hover:text-white border border-[#5D4030] hover:border-[#C19976] px-4 py-2 rounded-lg transition"
                 >
-                  Logout
+                  {t('logout')}
                 </button>
               </div>
             ) : (
@@ -162,10 +191,20 @@ const Navbar = () => {
                       <p className="text-white font-medium">{loggedInUser.name}</p>
                       {isAdmin && <p className="text-[#C19976] text-xs">Admin</p>}
                     </div>
-                    <button onClick={() => { logout(); setMobileOpen(false); }}
-                      className="text-sm text-red-400 border border-red-800 px-3 py-1.5 rounded-lg">
-                      Logout
-                    </button>
+                    <div className="flex gap-2">
+                      {!isAdmin && (
+                        <button
+                          onClick={() => { navigate('/orders'); setMobileOpen(false); }}
+                          className="text-sm text-gray-400 border border-[#5D4030] px-3 py-1.5 rounded-lg"
+                        >
+                          📦 Orders
+                        </button>
+                      )}
+                      <button onClick={() => { logout(); setMobileOpen(false); }}
+                        className="text-sm text-red-400 border border-red-800 px-3 py-1.5 rounded-lg">
+                        {t('logout')}
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex gap-2">
@@ -188,8 +227,8 @@ const Navbar = () => {
       {/* Auth Modal */}
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} defaultTab={authTab} />}
 
-      {/* Admin Dashboard */}
-      {isAdmin && <AdminDashboard />}
+      {/* Admin Dashboard — toggled via state */}
+      {isAdmin && showDashboard && <AdminDashboard onClose={() => setShowDashboard(false)} />}
     </>
   );
 };
